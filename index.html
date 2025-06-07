@@ -100,7 +100,23 @@
         </div>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+        // Ждем полной загрузки скрипта
+        function waitForTelegram() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                console.log("✅ Telegram WebApp загружен!");
+                initApp();
+            } else {
+                console.log("⏳ Ждем загрузки Telegram WebApp...");
+                setTimeout(waitForTelegram, 100);
+            }
+        }
+        
+        // Запускаем после загрузки DOM
+        document.addEventListener('DOMContentLoaded', waitForTelegram);
+        
+        function initApp() {
         let counter = 0;
         
         // Функция для безопасного логирования с отправкой на сервер
@@ -130,11 +146,15 @@
         
         // Проверяем доступность Telegram WebApp
         if (!window.Telegram) {
-            debugLog("❌ ОШИБКА: window.Telegram недоступен!");
+            debugLog("❌ КРИТИЧЕСКАЯ ОШИБКА: window.Telegram недоступен!");
+            debugLog("🔍 Это означает, что скрипт telegram-web-app.js не загрузился");
+            debugLog("🔍 Проверьте интернет-соединение и доступность https://telegram.org/js/telegram-web-app.js");
         } else if (!window.Telegram.WebApp) {
-            debugLog("❌ ОШИБКА: window.Telegram.WebApp недоступен!");
+            debugLog("❌ КРИТИЧЕСКАЯ ОШИБКА: window.Telegram.WebApp недоступен!");
+            debugLog("🔍 Telegram объект есть, но WebApp отсутствует");
         } else {
             debugLog("✅ Telegram WebApp API доступен");
+            debugLog("🔍 Версия API: " + window.Telegram.WebApp.version);
         }
         
         // Инициализация Telegram WebApp
@@ -280,7 +300,27 @@
                 sendDataExists: typeof tg?.sendData === 'function'
             };
             
-            debugLog("📊 Полная информация о состоянии:", info);
+            debugLog("📊 Полная информация о состоянии:");
+            
+            // Выводим каждое поле отдельно
+            debugLog("🔍 isTelegram: " + info.isTelegram);
+            debugLog("🔍 isWebApp: " + info.isWebApp);
+            debugLog("🔍 version: " + info.version);
+            debugLog("🔍 platform: " + info.platform);
+            debugLog("🔍 hasInitData: " + info.hasInitData);
+            debugLog("🔍 hasInitDataUnsafe: " + info.hasInitDataUnsafe);
+            debugLog("🔍 initDataLength: " + info.initDataLength);
+            debugLog("🔍 sendDataExists: " + info.sendDataExists);
+            debugLog("🔍 URL: " + info.url);
+            
+            // Дополнительные проверки
+            if (tg) {
+                debugLog("✅ tg объект существует");
+                debugLog("🔍 tg.initData: " + (tg.initData || 'пусто'));
+                debugLog("🔍 tg.initDataUnsafe: " + JSON.stringify(tg.initDataUnsafe || {}));
+            } else {
+                debugLog("❌ tg объект не существует!");
+            }
             
             // Специальная проверка для отправки данных
             if (!info.hasInitData || info.initDataLength === 0) {
@@ -290,6 +330,21 @@
             
             if (!info.sendDataExists) {
                 debugLog("❌ ОШИБКА: функция sendData недоступна!");
+            }
+            
+            // Проверяем window.Telegram более детально
+            if (window.Telegram) {
+                debugLog("✅ window.Telegram существует");
+                debugLog("🔍 Свойства Telegram: " + Object.keys(window.Telegram));
+                
+                if (window.Telegram.WebApp) {
+                    debugLog("✅ window.Telegram.WebApp существует");
+                    debugLog("🔍 Свойства WebApp: " + Object.keys(window.Telegram.WebApp));
+                } else {
+                    debugLog("❌ window.Telegram.WebApp НЕ существует!");
+                }
+            } else {
+                debugLog("❌ window.Telegram НЕ существует!");
             }
         }
         
@@ -351,7 +406,10 @@
         
         tg.onEvent('viewportChanged', function() {
             console.log('Viewport changed:', tg.viewportHeight, tg.viewportStableHeight);
-        });
+        }
+        
+        // Закрываем функцию initApp
+        } // конец initApp
     </script>
 </body>
 </html>
