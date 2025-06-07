@@ -272,10 +272,25 @@
                 viewportHeight: tg?.viewportHeight,
                 mainButtonVisible: tg?.MainButton?.isVisible,
                 url: window.location.href,
-                userAgent: navigator.userAgent
+                userAgent: navigator.userAgent,
+                // ВАЖНЫЕ ПРОВЕРКИ:
+                hasInitData: !!tg?.initData,
+                hasInitDataUnsafe: !!tg?.initDataUnsafe,
+                initDataLength: tg?.initData?.length || 0,
+                sendDataExists: typeof tg?.sendData === 'function'
             };
             
             debugLog("📊 Полная информация о состоянии:", info);
+            
+            // Специальная проверка для отправки данных
+            if (!info.hasInitData || info.initDataLength === 0) {
+                debugLog("⚠️ ВНИМАНИЕ: initData пуст! Возможно, приложение открыто не из Telegram");
+                alert("⚠️ Приложение должно быть открыто из Telegram бота!");
+            }
+            
+            if (!info.sendDataExists) {
+                debugLog("❌ ОШИБКА: функция sendData недоступна!");
+            }
         }
         
         function exportLogs() {
