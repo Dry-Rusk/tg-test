@@ -97,6 +97,7 @@
             <button class="button" onclick="clearDebug()">Очистить лог</button>
             <button class="button" onclick="showDebugInfo()">Показать информацию</button>
             <button class="button" onclick="testSendData()">Тест отправки данных</button>
+            <button class="button" onclick="debugLog('🔘 Кнопка работает!')">Тест кнопки</button>
             <button class="button" onclick="exportLogs()">Экспорт логов</button>
         </div>
     </div>
@@ -280,6 +281,26 @@
             document.getElementById('debug-info').innerHTML = '';
             localStorage.removeItem('miniapp_logs');
             debugLog("🧹 Лог очищен");
+        }
+        
+        function exportLogs() {
+            try {
+                const logs = localStorage.getItem('miniapp_logs');
+                if (logs) {
+                    const blob = new Blob([logs], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `miniapp_logs_${new Date().toISOString().slice(0,10)}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    debugLog("📥 Логи экспортированы");
+                } else {
+                    debugLog("📭 Нет логов для экспорта");
+                }
+            } catch (e) {
+                debugLog("❌ Ошибка экспорта логов: " + e.message);
+            }
         }
         
         function showDebugInfo() {
