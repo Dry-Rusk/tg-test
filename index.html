@@ -151,6 +151,7 @@
         
         // Отправить данные боту
         function sendData() {
+            console.log("entered send data");
             const data = {
                 counter: counter,
                 timestamp: new Date().toISOString(),
@@ -158,6 +159,7 @@
             };
             
             tg.sendData(JSON.stringify(data));
+            console.log("data sent");
         }
         
         // Закрыть приложение
