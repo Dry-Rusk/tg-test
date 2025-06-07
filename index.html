@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Mini App - Keyboard Button</title>
+    <title>Test Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -13,30 +13,23 @@
             background-color: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
             min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .card {
-            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .button {
             background: var(--tg-theme-button-color, #2481cc);
             color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-size: 16px;
+            border-radius: 12px;
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            width: 100%;
-            margin: 10px 0;
+            margin: 10px;
+            min-width: 200px;
             transition: opacity 0.2s;
         }
         
@@ -44,370 +37,55 @@
             opacity: 0.8;
         }
         
-        .button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .counter {
-            font-size: 48px;
-            text-align: center;
+        .status {
             margin: 20px 0;
-            color: var(--tg-theme-button-color, #2481cc);
-            font-weight: bold;
-        }
-        
-        .debug {
-            background: #1a1a1a;
-            color: #00ff00;
             padding: 15px;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            height: 200px;
-            overflow-y: auto;
-            margin: 10px 0;
-        }
-        
-        .status {
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
             font-weight: bold;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .status.warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #f0f0f0;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h1>🔗 Keyboard Button Mini App</h1>
-            <p>Приложение для работы с KeyboardButton (не Inline)</p>
-            <div id="status" class="status warning">Инициализация...</div>
-        </div>
-        
-        <div class="card">
-            <h2>📊 Счетчик</h2>
-            <div class="counter" id="counter">0</div>
-            <button class="button" onclick="increment()">➕ Увеличить на 1</button>
-            <button class="button" onclick="increment(5)">➕ Увеличить на 5</button>
-            <button class="button" onclick="reset()">🔄 Сбросить</button>
-        </div>
-        
-        <div class="card">
-            <h2>📤 Отправка данных боту</h2>
-            <p><strong>Важно:</strong> sendData работает только с KeyboardButton!</p>
-            <button class="button" id="sendBtn" onclick="sendDataToBot()" disabled>
-                📤 Отправить данные боту
-            </button>
-            <p><small>Данные отправятся как служебное сообщение боту</small></p>
-        </div>
-        
-        <div class="card">
-            <h2>👤 Информация о пользователе</h2>
-            <div id="userInfo">Загрузка...</div>
-        </div>
-        
-        <div class="card">
-            <h2>🔍 Проверка режима запуска</h2>
-            <div id="launchMode">Проверяется...</div>
-        </div>
-        
-        <div class="card">
-            <h2>🐛 Отладка</h2>
-            <div class="debug" id="debug"></div>
-            <button class="button" onclick="clearDebug()">🧹 Очистить лог</button>
-            <button class="button" onclick="runDiagnostics()">🔍 Диагностика</button>
-        </div>
+    <h1>🧪 Test Mini App</h1>
+    
+    <button class="button" onclick="sendTestData()">
+        📤 Отправить тестовые данные
+    </button>
+    
+    <div class="status" id="status">
+        Готов к отправке
     </div>
 
     <script>
-        let counter = 0;
         let tg = window.Telegram.WebApp;
         
-        // Функция логирования
-        function log(message) {
-            const timestamp = new Date().toLocaleTimeString();
-            console.log(`[${timestamp}] ${message}`);
+        // Инициализация
+        tg.ready();
+        tg.expand();
+        
+        function sendTestData() {
+            console.log("📤 Отправляем тестовые данные...");
             
-            const debugEl = document.getElementById('debug');
-            debugEl.innerHTML += `<div>${timestamp}: ${message}</div>`;
-            debugEl.scrollTop = debugEl.scrollHeight;
-        }
-        
-        // Функция обновления статуса
-        function updateStatus(message, type = 'info') {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status ${type}`;
-            log(`STATUS [${type.toUpperCase()}]: ${message}`);
-        }
-        
-        // Инициализация приложения
-        function initApp() {
-            log("🚀 === ИНИЦИАЛИЗАЦИЯ MINI APP ===");
+            const data = {"claude": "debil"};
             
             try {
-                // Основные настройки
-                tg.ready();
-                tg.expand();
-                
-                log("✅ tg.ready() и tg.expand() выполнены");
-                
-                // Проверяем режим запуска
-                checkLaunchMode();
-                
-                // Отображаем информацию о пользователе
-                displayUserInfo();
-                
-                // Настраиваем главную кнопку (но НЕ для отправки данных!)
-                tg.MainButton.text = "Главная кнопка";
-                tg.MainButton.color = "#2481cc";
-                tg.MainButton.show();
-                
-                // Обработчик главной кнопки
-                tg.MainButton.onClick(() => {
-                    log("🔘 Нажата главная кнопка");
-                    tg.showAlert("Главная кнопка нажата! Но данные отправляются через обычную кнопку.");
-                });
-                
-                log("✅ Главная кнопка настроена");
-                
-                // Включаем кнопку отправки, если это KeyboardButton режим
-                if (isKeyboardButtonMode()) {
-                    document.getElementById('sendBtn').disabled = false;
-                    updateStatus("✅ Готово к отправке данных через KeyboardButton", "success");
-                } else {
-                    updateStatus("⚠️ Предупреждение: sendData работает только с KeyboardButton", "warning");
-                }
-                
-                log("✅ Инициализация завершена");
-                
-            } catch (error) {
-                log("❌ Ошибка инициализации: " + error.message);
-                updateStatus("❌ Ошибка инициализации", "error");
-            }
-        }
-        
-        // Проверка режима запуска
-        function checkLaunchMode() {
-            const launchModeEl = document.getElementById('launchMode');
-            
-            // Проверяем наличие query_id (признак InlineKeyboard)
-            const hasQueryId = tg.initDataUnsafe?.query_id;
-            
-            // Проверяем initData
-            const hasInitData = tg.initData && tg.initData.length > 0;
-            
-            let modeText = "";
-            let isKeyboardButton = false;
-            
-            if (hasQueryId) {
-                modeText = "🔴 InlineKeyboard режим (query_id найден)";
-                log("🔍 Обнаружен query_id - это InlineKeyboard режим");
-            } else if (hasInitData) {
-                modeText = "🟢 KeyboardButton режим";
-                isKeyboardButton = true;
-                log("🔍 Нет query_id, но есть initData - это KeyboardButton режим");
-            } else {
-                modeText = "🟡 Режим неопределен (нет initData)";
-                log("🔍 Нет initData - возможно, открыто напрямую");
-            }
-            
-            launchModeEl.innerHTML = `
-                <strong>Режим запуска:</strong> ${modeText}<br>
-                <strong>sendData доступен:</strong> ${isKeyboardButton ? '✅ Да' : '❌ Нет'}<br>
-                <strong>query_id:</strong> ${hasQueryId ? '✅ Есть' : '❌ Нет'}<br>
-                <strong>initData:</strong> ${hasInitData ? '✅ Есть' : '❌ Нет'}
-            `;
-            
-            return isKeyboardButton;
-        }
-        
-        // Проверяет, запущено ли приложение через KeyboardButton
-        function isKeyboardButtonMode() {
-            // KeyboardButton: есть initData, но НЕТ query_id
-            const hasInitData = tg.initData && tg.initData.length > 0;
-            const hasQueryId = tg.initDataUnsafe?.query_id;
-            
-            return hasInitData && !hasQueryId;
-        }
-        
-        // Отображение информации о пользователе
-        function displayUserInfo() {
-            const userInfoEl = document.getElementById('userInfo');
-            
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                userInfoEl.innerHTML = `
-                    <strong>👤 Имя:</strong> ${user.first_name || 'Не указано'}<br>
-                    <strong>👥 Фамилия:</strong> ${user.last_name || 'Не указано'}<br>
-                    <strong>📛 Username:</strong> @${user.username || 'Не указан'}<br>
-                    <strong>🆔 ID:</strong> ${user.id}<br>
-                    <strong>🌐 Язык:</strong> ${user.language_code || 'Не указан'}<br>
-                    <strong>⭐ Premium:</strong> ${user.is_premium ? 'Да' : 'Нет'}
-                `;
-                log("👤 Информация о пользователе загружена");
-            } else {
-                userInfoEl.innerHTML = '<em>❌ Информация недоступна</em>';
-                log("❌ Информация о пользователе недоступна");
-            }
-        }
-        
-        // Функции счетчика
-        function increment(amount = 1) {
-            counter += amount;
-            document.getElementById('counter').textContent = counter;
-            log(`➕ Счетчик увеличен на ${amount}, новое значение: ${counter}`);
-            
-            // Вибрация
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
-        }
-        
-        function reset() {
-            counter = 0;
-            document.getElementById('counter').textContent = counter;
-            log("🔄 Счетчик сброшен");
-            
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-        }
-        
-        // ОСНОВНАЯ ФУНКЦИЯ: отправка данных через sendData (только для KeyboardButton!)
-        function sendDataToBot() {
-            log("📤 === ОТПРАВКА ДАННЫХ ЧЕРЕЗ sendData ===");
-            
-            // Проверяем, что это KeyboardButton режим
-            if (!isKeyboardButtonMode()) {
-                const errorMsg = "❌ sendData работает только с KeyboardButton! Откройте приложение через обычную кнопку клавиатуры, а не через inline-кнопку.";
-                log(errorMsg);
-                updateStatus("Ошибка: неправильный режим запуска", "error");
-                tg.showAlert(errorMsg);
-                return;
-            }
-            
-            // Подготавливаем данные
-            const data = {
-                type: "keyboard_button_data",
-                counter: counter,
-                timestamp: new Date().toISOString(),
-                user_id: tg.initDataUnsafe?.user?.id,
-                user_name: tg.initDataUnsafe?.user?.first_name,
-                platform: tg.platform,
-                version: tg.version,
-                message: `Пользователь отправил счетчик со значением ${counter} через KeyboardButton`
-            };
-            
-            log("📋 Подготовленные данные:");
-            log(JSON.stringify(data, null, 2));
-            
-            try {
-                // ВАЖНО: sendData работает только с KeyboardButton!
                 tg.sendData(JSON.stringify(data));
                 
-                log("✅ Данные отправлены через tg.sendData()");
-                updateStatus("✅ Данные отправлены боту!", "success");
+                document.getElementById('status').textContent = "✅ Данные отправлены!";
+                console.log("✅ Данные отправлены:", data);
                 
-                // Показываем уведомление
-                tg.showAlert("✅ Данные отправлены боту как служебное сообщение!");
-                
-                // Вибрация успеха
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-                
-                // Закрываем приложение через 2 секунды
+                // Закрываем через 2 секунды
                 setTimeout(() => {
-                    log("🚪 Закрываем приложение...");
                     tg.close();
                 }, 2000);
                 
             } catch (error) {
-                log("💥 КРИТИЧЕСКАЯ ОШИБКА sendData: " + error.message);
-                updateStatus("❌ Ошибка отправки данных", "error");
-                tg.showAlert("❌ Ошибка отправки: " + error.message);
+                document.getElementById('status').textContent = "❌ Ошибка: " + error.message;
+                console.error("❌ Ошибка:", error);
             }
         }
-        
-        // Диагностика
-        function runDiagnostics() {
-            log("📊 === ДИАГНОСТИКА ===");
-            log("🔍 window.Telegram: " + !!window.Telegram);
-            log("🔍 window.Telegram.WebApp: " + !!window.Telegram.WebApp);
-            log("📱 Версия WebApp: " + (tg.version || 'неизвестно'));
-            log("🖥️ Платформа: " + (tg.platform || 'неизвестно'));
-            log("📏 Высота viewport: " + (tg.viewportHeight || 'неизвестно'));
-            log("📐 Развернуто: " + (tg.isExpanded || false));
-            log("🔑 initData есть: " + !!tg.initData);
-            log("🔑 initData длина: " + (tg.initData ? tg.initData.length : 0));
-            log("🔑 query_id есть: " + !!tg.initDataUnsafe?.query_id);
-            log("👤 Пользователь есть: " + !!tg.initDataUnsafe?.user);
-            log("📤 sendData доступен: " + (typeof tg.sendData === 'function'));
-            log("🔘 MainButton видима: " + tg.MainButton.isVisible);
-            log("🌐 URL: " + window.location.href);
-            
-            const isKeyboard = isKeyboardButtonMode();
-            log("🔗 Режим KeyboardButton: " + isKeyboard);
-            
-            if (isKeyboard) {
-                log("✅ ГОТОВО: приложение запущено через KeyboardButton, sendData работает");
-            } else if (tg.initDataUnsafe?.query_id) {
-                log("⚠️ ВНИМАНИЕ: приложение запущено через InlineKeyboard, sendData НЕ работает");
-            } else {
-                log("🚨 ПРОБЛЕМА: нет initData, приложение открыто напрямую");
-            }
-            
-            log("📊 === КОНЕЦ ДИАГНОСТИКИ ===");
-        }
-        
-        // Очистка лога
-        function clearDebug() {
-            document.getElementById('debug').innerHTML = '';
-            log("🧹 Лог очищен");
-        }
-        
-        // Обработчики событий Telegram
-        tg.onEvent('themeChanged', function() {
-            log("🎨 Тема изменена");
-        });
-        
-        tg.onEvent('viewportChanged', function() {
-            log("📐 Viewport изменен: " + tg.viewportHeight);
-        });
-        
-        // Запуск при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            log("📄 DOM загружен, запускаем инициализацию...");
-            initApp();
-        });
-        
-        // Обработка ошибок
-        window.addEventListener('error', function(e) {
-            log("💥 JavaScript ошибка: " + e.message);
-            updateStatus("❌ JavaScript ошибка", "error");
-        });
     </script>
 </body>
 </html>
