@@ -93,9 +93,10 @@
         <!-- Панель отладки -->
         <div class="card">
             <h2>🐛 Отладка</h2>
-            <div id="debug-info" style="height: 150px; overflow-y: auto; background: #f0f0f0; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;"></div>
+            <div id="debug-info" style="height: 150px; overflow-y: auto; background: #1a1a1a; color: #00ff00; padding: 10px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 12px; border: 1px solid #333;"></div>
             <button class="button" onclick="clearDebug()">Очистить лог</button>
             <button class="button" onclick="showDebugInfo()">Показать информацию</button>
+            <button class="button" onclick="testSendData()">Тест отправки данных</button>
             <button class="button" onclick="exportLogs()">Экспорт логов</button>
         </div>
     </div>
@@ -282,73 +283,91 @@
         }
         
         function showDebugInfo() {
-            const info = {
-                isTelegram: !!window.Telegram,
-                isWebApp: !!window.Telegram?.WebApp,
-                version: tg?.version,
-                platform: tg?.platform,
-                user: tg?.initDataUnsafe?.user,
-                isExpanded: tg?.isExpanded,
-                viewportHeight: tg?.viewportHeight,
-                mainButtonVisible: tg?.MainButton?.isVisible,
-                url: window.location.href,
-                userAgent: navigator.userAgent,
-                // ВАЖНЫЕ ПРОВЕРКИ:
-                hasInitData: !!tg?.initData,
-                hasInitDataUnsafe: !!tg?.initDataUnsafe,
-                initDataLength: tg?.initData?.length || 0,
-                sendDataExists: typeof tg?.sendData === 'function'
-            };
+            debugLog("📊 Начинаем диагностику...");
             
-            debugLog("📊 Полная информация о состоянии:");
+            // Проверяем основные объекты
+            debugLog("🔍 window.Telegram: " + (!!window.Telegram));
+            debugLog("🔍 window.Telegram.WebApp: " + (!!window.Telegram?.WebApp));
+            debugLog("🔍 tg объект: " + (!!tg));
             
-            // Выводим каждое поле отдельно
-            debugLog("🔍 isTelegram: " + info.isTelegram);
-            debugLog("🔍 isWebApp: " + info.isWebApp);
-            debugLog("🔍 version: " + info.version);
-            debugLog("🔍 platform: " + info.platform);
-            debugLog("🔍 hasInitData: " + info.hasInitData);
-            debugLog("🔍 hasInitDataUnsafe: " + info.hasInitDataUnsafe);
-            debugLog("🔍 initDataLength: " + info.initDataLength);
-            debugLog("🔍 sendDataExists: " + info.sendDataExists);
-            debugLog("🔍 URL: " + info.url);
+            if (!tg) {
+                debugLog("❌ КРИТИЧЕСКАЯ ОШИБКА: tg объект недоступен!");
+                return;
+            }
             
-            // Дополнительные проверки
-            if (tg) {
-                debugLog("✅ tg объект существует");
-                debugLog("🔍 tg.initData: " + (tg.initData || 'пусто'));
-                debugLog("🔍 tg.initDataUnsafe: " + JSON.stringify(tg.initDataUnsafe || {}));
+            // Основная информация
+            debugLog("📱 Версия: " + (tg.version || 'неизвестно'));
+            debugLog("🖥️ Платформа: " + (tg.platform || 'неизвестно'));
+            debugLog("📏 Высота viewport: " + (tg.viewportHeight || 'неизвестно'));
+            debugLog("📐 Развернуто: " + (tg.isExpanded || false));
+            
+            // САМОЕ ВАЖНОЕ - проверяем initData
+            debugLog("🔑 initData существует: " + (!!tg.initData));
+            debugLog("🔑 initData длина: " + (tg.initData ? tg.initData.length : 0));
+            debugLog("🔑 initDataUnsafe существует: " + (!!tg.initDataUnsafe));
+            
+            // Проверяем пользователя
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                debugLog("👤 Пользователь найден:");
+                debugLog("👤 ID: " + tg.initDataUnsafe.user.id);
+                debugLog("👤 Имя: " + (tg.initDataUnsafe.user.first_name || 'нет'));
+                debugLog("👤 Username: " + (tg.initDataUnsafe.user.username || 'нет'));
             } else {
-                debugLog("❌ tg объект не существует!");
+                debugLog("❌ Пользователь НЕ найден в initDataUnsafe!");
             }
             
-            // Специальная проверка для отправки данных
-            if (!info.hasInitData || info.initDataLength === 0) {
-                debugLog("⚠️ ВНИМАНИЕ: initData пуст! Возможно, приложение открыто не из Telegram");
-                alert("⚠️ Приложение должно быть открыто из Telegram бота!");
-            }
+            // Проверяем возможность отправки данных
+            debugLog("📤 sendData функция: " + (typeof tg.sendData));
             
-            if (!info.sendDataExists) {
-                debugLog("❌ ОШИБКА: функция sendData недоступна!");
-            }
+            // Главная кнопка
+            debugLog("🔘 MainButton видима: " + (tg.MainButton ? tg.MainButton.isVisible : 'нет MainButton'));
             
-            // Проверяем window.Telegram более детально
-            if (window.Telegram) {
-                debugLog("✅ window.Telegram существует");
-                debugLog("🔍 Свойства Telegram: " + Object.keys(window.Telegram));
-                
-                if (window.Telegram.WebApp) {
-                    debugLog("✅ window.Telegram.WebApp существует");
-                    debugLog("🔍 Свойства WebApp: " + Object.keys(window.Telegram.WebApp));
-                } else {
-                    debugLog("❌ window.Telegram.WebApp НЕ существует!");
-                }
+            // URL приложения
+            debugLog("🌐 URL: " + window.location.href);
+            
+            // КРИТИЧЕСКАЯ ПРОВЕРКА
+            if (!tg.initData || tg.initData.length === 0) {
+                debugLog("🚨 ПРОБЛЕМА: initData пуст!");
+                debugLog("🚨 Это означает, что приложение открыто НЕ из Telegram бота!");
+                alert("❌ Приложение должно быть запущено через кнопку в Telegram боте, а не напрямую по ссылке!");
             } else {
-                debugLog("❌ window.Telegram НЕ существует!");
+                debugLog("✅ initData содержит данные - можно отправлять!");
             }
+            
+            debugLog("📊 Диагностика завершена");
         }
         
-        function exportLogs() {
+        function testSendData() {
+            debugLog("🧪 ТЕСТ ОТПРАВКИ ДАННЫХ");
+            
+            if (!tg) {
+                debugLog("❌ tg недоступен");
+                return;
+            }
+            
+            if (!tg.initData || tg.initData.length === 0) {
+                debugLog("❌ initData пуст - отправка невозможна");
+                alert("❌ Приложение не авторизовано. Откройте его через бота в Telegram!");
+                return;
+            }
+            
+            const testData = {
+                test: true,
+                message: "Тестовое сообщение",
+                timestamp: new Date().toISOString(),
+                counter: counter
+            };
+            
+            debugLog("📤 Отправляем тестовые данные: " + JSON.stringify(testData));
+            
+            try {
+                tg.sendData(JSON.stringify(testData));
+                debugLog("✅ Команда отправки выполнена успешно");
+                debugLog("⏳ Ожидайте сообщение в боте...");
+            } catch (error) {
+                debugLog("💥 Ошибка отправки: " + error.message);
+            }
+        }
             try {
                 const logs = localStorage.getItem('miniapp_logs');
                 if (logs) {
