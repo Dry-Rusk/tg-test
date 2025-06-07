@@ -85,16 +85,6 @@
             <button class="button" onclick="closeApp()">Закрыть приложение</button>
         </div>
         
-        <!-- Панель отладки -->
-        <div class="card">
-            <h2>🐛 Отладка</h2>
-            <div id="debug-info" style="height: 150px; overflow-y: auto; background: #1a1a1a; color: #00ff00; padding: 10px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 12px; border: 1px solid #333;"></div>
-            <button class="button" onclick="clearDebug()">Очистить лог</button>
-            <button class="button" onclick="showDebugInfo()">Показать информацию</button>
-            <button class="button" onclick="testSendData()">Тест отправки данных</button>
-            <button class="button" onclick="testButton()">Тест кнопки</button>
-        </div>
-        
         <div class="info">
             <strong>Версия Telegram WebApp:</strong> <span id="version"></span><br>
             <strong>Платформа:</strong> <span id="platform"></span>
@@ -103,77 +93,26 @@
 
     <script>
         let counter = 0;
-        let tg = null;
         
-        // Функция для логирования с отображением в интерфейсе
-        function debugLog(message) {
-            const timestamp = new Date().toLocaleTimeString();
-            console.log(`[${timestamp}] ${message}`);
-            
-            const debugElement = document.getElementById('debug-info');
-            if (debugElement) {
-                debugElement.innerHTML += `<div>${timestamp}: ${message}</div>`;
-                debugElement.scrollTop = debugElement.scrollHeight;
-            }
-        }
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
         
-        // Простой тест кнопки
-        function testButton() {
-            debugLog('🔘 Кнопка работает!');
-            alert('Кнопка работает!');
-        }
+        // Настройка интерфейса
+        tg.ready();
+        tg.expand();
         
-        // Ждем загрузки Telegram WebApp
-        function waitForTelegram() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                debugLog("✅ Telegram WebApp загружен!");
-                tg = window.Telegram.WebApp;
-                initApp();
-            } else {
-                debugLog("⏳ Ждем загрузки Telegram WebApp...");
-                setTimeout(waitForTelegram, 100);
-            }
-        }
-        
-        // Инициализация приложения
-        function initApp() {
-            debugLog("🔧 Настраиваем интерфейс...");
-            
-            if (tg) {
-                tg.ready();
-                tg.expand();
-                debugLog("✅ tg.ready() и tg.expand() выполнены");
-                
-                // Настройка главной кнопки
-                tg.MainButton.text = "Отправить данные";
-                tg.MainButton.show();
-                tg.MainButton.onClick(() => {
-                    debugLog("🔘 Главная кнопка нажата");
-                    sendData();
-                });
-                debugLog("✅ Главная кнопка настроена");
-            }
-            
-            // Отображение информации
-            displayUserInfo();
-            
-            if (tg) {
-                document.getElementById('version').textContent = tg.version || 'Неизвестно';
-                document.getElementById('platform').textContent = tg.platform || 'Неизвестно';
-                debugLog("📱 Версия: " + tg.version);
-                debugLog("🖥️ Платформа: " + tg.platform);
-            }
-            
-            debugLog("✅ Инициализация завершена");
-        }
+        // Настройка главной кнопки
+        tg.MainButton.text = "Отправить данные";
+        tg.MainButton.show();
+        tg.MainButton.onClick(() => sendData());
         
         // Функции счетчика
         function incrementCounter() {
             counter++;
             document.getElementById('counter').textContent = counter;
-            debugLog("➕ Счетчик: " + counter);
             
-            if (tg && tg.HapticFeedback) {
+            // Добавляем haptic feedback
+            if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
         }
@@ -181,19 +120,18 @@
         function resetCounter() {
             counter = 0;
             document.getElementById('counter').textContent = counter;
-            debugLog("🔄 Счетчик сброшен");
             
-            if (tg && tg.HapticFeedback) {
+            if (tg.HapticFeedback) {
                 tg.HapticFeedback.notificationOccurred('success');
             }
         }
         
         // Отображение информации о пользователе
         function displayUserInfo() {
+            const user = tg.initDataUnsafe.user;
             const userInfoElement = document.getElementById('userInfo');
             
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
+            if (user) {
                 userInfoElement.innerHTML = `
                     <strong>Имя:</strong> ${user.first_name || 'Не указано'}<br>
                     <strong>Фамилия:</strong> ${user.last_name || 'Не указано'}<br>
@@ -201,147 +139,53 @@
                     <strong>ID:</strong> ${user.id}<br>
                     <strong>Язык:</strong> ${user.language_code || 'Не указан'}
                 `;
-                debugLog("👤 Информация о пользователе загружена");
             } else {
                 userInfoElement.textContent = 'Информация о пользователе недоступна';
-                debugLog("❌ Информация о пользователе недоступна");
             }
         }
         
         // Показать уведомление
         function showAlert() {
-            const message = `Привет! Счетчик сейчас равен ${counter}`;
-            debugLog("💬 Показываем уведомление: " + message);
-            
-            if (tg) {
-                tg.showAlert(message);
-            } else {
-                alert(message);
-            }
+            tg.showAlert(`Привет! Счетчик сейчас равен ${counter}`);
         }
         
         // Отправить данные боту
         function sendData() {
-            debugLog("📤 Начинаем отправку данных...");
-            
-            if (!tg) {
-                debugLog("❌ tg объект недоступен!");
-                alert("Ошибка: Telegram WebApp недоступен");
-                return;
-            }
-            
-            if (!tg.initData || tg.initData.length === 0) {
-                debugLog("❌ initData пуст - отправка невозможна");
-                alert("❌ Приложение не авторизовано. Откройте его через бота!");
-                return;
-            }
-            
             const data = {
                 counter: counter,
                 timestamp: new Date().toISOString(),
-                user_id: tg.initDataUnsafe?.user?.id,
-                from_telegram: true
+                user_id: tg.initDataUnsafe.user?.id
             };
             
-            debugLog("📋 Данные для отправки: " + JSON.stringify(data));
-            
-            try {
-                tg.sendData(JSON.stringify(data));
-                debugLog("✅ Данные отправлены!");
-                if (tg.showAlert) {
-                    tg.showAlert("Данные отправлены боту!");
-                }
-            } catch (error) {
-                debugLog("💥 Ошибка отправки: " + error.message);
-                alert("Ошибка отправки: " + error.message);
-            }
+            tg.sendData(JSON.stringify(data));
         }
         
         // Закрыть приложение
         function closeApp() {
-            debugLog("🚪 Закрываем приложение");
-            if (tg) {
-                tg.close();
-            }
+            tg.close();
         }
         
-        // Функции отладки
-        function clearDebug() {
-            document.getElementById('debug-info').innerHTML = '';
-            debugLog("🧹 Лог очищен");
-        }
-        
-        function showDebugInfo() {
-            debugLog("📊 === ДИАГНОСТИКА ===");
-            debugLog("🔍 window.Telegram: " + (!!window.Telegram));
-            debugLog("🔍 tg объект: " + (!!tg));
-            
-            if (!tg) {
-                debugLog("❌ КРИТИЧЕСКАЯ ОШИБКА: tg недоступен!");
-                return;
-            }
-            
-            debugLog("📱 Версия: " + (tg.version || 'неизвестно'));
-            debugLog("🖥️ Платформа: " + (tg.platform || 'неизвестно'));
-            debugLog("🔑 initData есть: " + (!!tg.initData));
-            debugLog("🔑 initData длина: " + (tg.initData ? tg.initData.length : 0));
-            debugLog("👤 Пользователь есть: " + (!!tg.initDataUnsafe?.user));
-            debugLog("📤 sendData доступен: " + (typeof tg.sendData === 'function'));
-            debugLog("🌐 URL: " + window.location.href);
-            
-            if (!tg.initData || tg.initData.length === 0) {
-                debugLog("🚨 ПРОБЛЕМА: initData пуст!");
-                debugLog("🚨 Откройте приложение через бота!");
-            } else {
-                debugLog("✅ Приложение готово к отправке данных");
-            }
-            
-            debugLog("📊 === КОНЕЦ ДИАГНОСТИКИ ===");
-        }
-        
-        function testSendData() {
-            debugLog("🧪 === ТЕСТ ОТПРАВКИ ===");
-            
-            if (!tg) {
-                debugLog("❌ tg недоступен");
-                return;
-            }
-            
-            if (!tg.initData || tg.initData.length === 0) {
-                debugLog("❌ initData пуст");
-                alert("❌ Откройте приложение через бота!");
-                return;
-            }
-            
-            const testData = {
-                test: true,
-                message: "Тест",
-                counter: counter
-            };
-            
-            debugLog("📤 Тестовые данные: " + JSON.stringify(testData));
-            
-            try {
-                tg.sendData(JSON.stringify(testData));
-                debugLog("✅ Тест отправлен!");
-            } catch (error) {
-                debugLog("💥 Ошибка: " + error.message);
-            }
-        }
-        
-        // Запуск при загрузке
+        // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            debugLog("🚀 DOM загружен");
-            waitForTelegram();
+            displayUserInfo();
+            
+            // Отображение версии и платформы
+            document.getElementById('version').textContent = tg.version || 'Неизвестно';
+            document.getElementById('platform').textContent = tg.platform || 'Неизвестно';
+            
+            // Настройка темы
+            document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
+            document.body.style.color = tg.themeParams.text_color || '#000000';
         });
         
-        // Обработка событий Telegram
-        window.addEventListener('load', function() {
-            if (tg) {
-                tg.onEvent('themeChanged', function() {
-                    debugLog("🎨 Тема изменена");
-                });
-            }
+        // Обработка событий Telegram WebApp
+        tg.onEvent('themeChanged', function() {
+            document.body.style.backgroundColor = tg.themeParams.bg_color;
+            document.body.style.color = tg.themeParams.text_color;
+        });
+        
+        tg.onEvent('viewportChanged', function() {
+            console.log('Viewport changed:', tg.viewportHeight, tg.viewportStableHeight);
         });
     </script>
 </body>
