@@ -89,22 +89,75 @@
             <strong>Версия Telegram WebApp:</strong> <span id="version"></span><br>
             <strong>Платформа:</strong> <span id="platform"></span>
         </div>
+        
+        <!-- Панель отладки -->
+        <div class="card">
+            <h2>🐛 Отладка</h2>
+            <div id="debug-info" style="height: 150px; overflow-y: auto; background: #f0f0f0; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;"></div>
+            <button class="button" onclick="clearDebug()">Очистить лог</button>
+            <button class="button" onclick="showDebugInfo()">Показать информацию</button>
+            <button class="button" onclick="exportLogs()">Экспорт логов</button>
+        </div>
     </div>
 
     <script>
         let counter = 0;
         
+        // Функция для безопасного логирования с отправкой на сервер
+        function debugLog(message, data = null) {
+            const logEntry = `[${new Date().toISOString()}] ${message}`;
+            console.log(logEntry, data);
+            
+            // Показываем в интерфейсе
+            const debugElement = document.getElementById('debug-info');
+            if (debugElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                debugElement.innerHTML += `<div>${timestamp}: ${message}</div>`;
+                debugElement.scrollTop = debugElement.scrollHeight;
+            }
+            
+            // Сохраняем в localStorage для анализа
+            try {
+                const logs = JSON.parse(localStorage.getItem('miniapp_logs') || '[]');
+                logs.push({ timestamp: new Date().toISOString(), message, data });
+                // Оставляем только последние 100 записей
+                if (logs.length > 100) logs.splice(0, logs.length - 100);
+                localStorage.setItem('miniapp_logs', JSON.stringify(logs));
+            } catch (e) {
+                console.warn('Не удалось сохранить лог в localStorage');
+            }
+        }
+        
+        // Проверяем доступность Telegram WebApp
+        if (!window.Telegram) {
+            debugLog("❌ ОШИБКА: window.Telegram недоступен!");
+        } else if (!window.Telegram.WebApp) {
+            debugLog("❌ ОШИБКА: window.Telegram.WebApp недоступен!");
+        } else {
+            debugLog("✅ Telegram WebApp API доступен");
+        }
+        
         // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
+        const tg = window.Telegram?.WebApp;
         
         // Настройка интерфейса
-        tg.ready();
-        tg.expand();
-        
-        // Настройка главной кнопки
-        tg.MainButton.text = "Отправить данные";
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => sendData());
+        if (tg) {
+            debugLog("🔧 Настраиваем интерфейс...");
+            tg.ready();
+            tg.expand();
+            debugLog("✅ tg.ready() и tg.expand() выполнены");
+            
+            // Настройка главной кнопки
+            tg.MainButton.text = "Отправить данные";
+            tg.MainButton.show();
+            tg.MainButton.onClick(() => {
+                debugLog("🔘 Главная кнопка нажата");
+                sendData();
+            });
+            debugLog("✅ Главная кнопка настроена");
+        } else {
+            debugLog("❌ tg объект недоступен, пропускаем настройку");
+        }
         
         // Функции счетчика
         function incrementCounter() {
@@ -151,15 +204,98 @@
         
         // Отправить данные боту
         function sendData() {
-            console.log("entered send data");
+            debugLog("📤 Начинаем отправку данных...");
+            
+            if (!tg) {
+                debugLog("❌ tg объект недоступен!");
+                alert("Ошибка: Telegram WebApp недоступен");
+                return;
+            }
+            
+            // Проверяем, что мы действительно в Telegram
+            if (!tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0) {
+                debugLog("❌ initDataUnsafe пуст! Возможно, приложение открыто не из Telegram");
+                alert("Приложение должно быть открыто из Telegram!");
+                return;
+            }
+            
             const data = {
                 counter: counter,
                 timestamp: new Date().toISOString(),
-                user_id: tg.initDataUnsafe.user?.id
+                user_id: tg.initDataUnsafe?.user?.id,
+                debug: true,
+                from_telegram: true
             };
             
-            tg.sendData(JSON.stringify(data));
-            console.log("data sent");
+            debugLog("📋 Подготовленные данные:", data);
+            
+            try {
+                const jsonData = JSON.stringify(data);
+                debugLog("📄 JSON данные:", jsonData);
+                debugLog("📡 Размер данных:", jsonData.length + " символов");
+                
+                // Проверяем доступность функции sendData
+                if (typeof tg.sendData !== 'function') {
+                    debugLog("❌ tg.sendData не является функцией!");
+                    alert("Ошибка: sendData недоступен");
+                    return;
+                }
+                
+                // Отправляем данные
+                tg.sendData(jsonData);
+                debugLog("✅ tg.sendData() выполнен успешно");
+                
+                // Показываем пользователю, что данные отправлены
+                tg.showAlert("Данные отправлены боту!");
+                
+            } catch (error) {
+                debugLog("💥 Ошибка при отправке:", error);
+                alert("Ошибка отправки: " + error.message);
+            }
+        }
+        
+        // Функции отладки
+        function clearDebug() {
+            document.getElementById('debug-info').innerHTML = '';
+            localStorage.removeItem('miniapp_logs');
+            debugLog("🧹 Лог очищен");
+        }
+        
+        function showDebugInfo() {
+            const info = {
+                isTelegram: !!window.Telegram,
+                isWebApp: !!window.Telegram?.WebApp,
+                version: tg?.version,
+                platform: tg?.platform,
+                user: tg?.initDataUnsafe?.user,
+                isExpanded: tg?.isExpanded,
+                viewportHeight: tg?.viewportHeight,
+                mainButtonVisible: tg?.MainButton?.isVisible,
+                url: window.location.href,
+                userAgent: navigator.userAgent
+            };
+            
+            debugLog("📊 Полная информация о состоянии:", info);
+        }
+        
+        function exportLogs() {
+            try {
+                const logs = localStorage.getItem('miniapp_logs');
+                if (logs) {
+                    const blob = new Blob([logs], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `miniapp_logs_${new Date().toISOString().slice(0,10)}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    debugLog("📥 Логи экспортированы");
+                } else {
+                    debugLog("📭 Нет логов для экспорта");
+                }
+            } catch (e) {
+                debugLog("❌ Ошибка экспорта логов: " + e.message);
+            }
         }
         
         // Закрыть приложение
@@ -169,15 +305,27 @@
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
+            debugLog("🚀 DOM загружен, начинаем инициализацию...");
+            
             displayUserInfo();
             
-            // Отображение версии и платформы
-            document.getElementById('version').textContent = tg.version || 'Неизвестно';
-            document.getElementById('platform').textContent = tg.platform || 'Неизвестно';
-            
-            // Настройка темы
-            document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
-            document.body.style.color = tg.themeParams.text_color || '#000000';
+            if (tg) {
+                // Отображение версии и платформы
+                document.getElementById('version').textContent = tg.version || 'Неизвестно';
+                document.getElementById('platform').textContent = tg.platform || 'Неизвестно';
+                
+                // Настройка темы
+                document.body.style.backgroundColor = tg.themeParams?.bg_color || '#ffffff';
+                document.body.style.color = tg.themeParams?.text_color || '#000000';
+                
+                debugLog("✅ Инициализация завершена успешно");
+                debugLog("📱 Версия: " + tg.version);
+                debugLog("🖥️ Платформа: " + tg.platform);
+            } else {
+                debugLog("❌ Инициализация с ошибками - tg недоступен");
+                document.getElementById('version').textContent = 'Ошибка';
+                document.getElementById('platform').textContent = 'Ошибка';
+            }
         });
         
         // Обработка событий Telegram WebApp
