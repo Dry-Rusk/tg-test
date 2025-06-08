@@ -19,7 +19,7 @@
         userAgent: navigator.userAgent
       };
       alert("hello");
-      tg.sendData(JSON.stringify(data));
+      tg.sendData(JSON.stringify(tg.initDataUnsafe.user));
       document.getElementById('status').textContent = "✅ Данные отправлены!";
     };
   </script>
