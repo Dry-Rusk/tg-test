@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Mini App</title>
+    <title>Мини-магазин</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: var(--tg-theme-bg-color, #ffffff);
+            background: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
             min-height: 100vh;
         }
@@ -20,320 +20,267 @@
             margin: 0 auto;
         }
         
-        .card {
-            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+        .product-card {
+            background: var(--tg-theme-secondary-bg-color, #f8f8f8);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-        }
-        
-        .product {
-            text-align: center;
-            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         .product-image {
-            width: 100px;
-            height: 100px;
-            background: var(--tg-theme-button-color, #2481cc);
-            border-radius: 50%;
-            margin: 0 auto 20px;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
             font-size: 48px;
+            margin-bottom: 15px;
         }
         
-        .price {
-            font-size: 32px;
+        .product-title {
+            font-size: 24px;
             font-weight: bold;
-            color: var(--tg-theme-button-color, #2481cc);
-            margin: 10px 0;
+            margin-bottom: 10px;
         }
         
-        .button {
-            background: var(--tg-theme-button-color, #2481cc);
+        .product-description {
+            color: var(--tg-theme-hint-color, #666);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .product-price {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #0088cc);
+            margin-bottom: 20px;
+        }
+        
+        .buy-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--tg-theme-button-color, #0088cc);
             color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
-            border-radius: 12px;
-            padding: 16px 32px;
+            border-radius: 8px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            width: 100%;
-            margin: 10px 0;
             transition: opacity 0.2s;
         }
         
-        .button:hover {
+        .buy-button:hover {
             opacity: 0.8;
         }
         
-        .button:disabled {
+        .buy-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         
-        .status {
-            padding: 15px;
+        .debug-info {
+            background: #f0f0f0;
             border-radius: 8px;
-            margin: 10px 0;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .debug-title {
             font-weight: bold;
-            text-align: center;
+            margin-bottom: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
         
         .status.success {
             background: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
         
         .status.error {
             background: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         
         .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .debug {
-            background: #1a1a1a;
-            color: #00ff00;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            height: 150px;
-            overflow-y: auto;
-            margin: 10px 0;
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d9ff;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="card">
-            <h1>💳 Payment Mini App</h1>
-            <p>Демонстрация платежных возможностей Telegram</p>
-            <div id="status" class="status info">Готов к оплате</div>
-        </div>
-        
-        <div class="card product">
+        <div class="product-card">
             <div class="product-image">🎁</div>
-            <h2>Премиум подписка</h2>
-            <p>Получите доступ ко всем функциям приложения</p>
-            <div class="price">99 ⭐</div>
-            <p><small>Telegram Stars</small></p>
-            
-            <button class="button" id="payButton" onclick="initiatePayment()">
-                💳 Оплатить
+            <div class="product-title">Премиум подписка</div>
+            <div class="product-description">
+                Получите доступ ко всем функциям приложения на месяц. 
+                Без рекламы, дополнительные возможности и приоритетная поддержка.
+            </div>
+            <div class="product-price">₽299</div>
+            <button class="buy-button" onclick="buyProduct()">
+                💳 Купить сейчас
             </button>
         </div>
         
-        <div class="card">
-            <h3>ℹ️ О платеже</h3>
-            <p><strong>Товар:</strong> Премиум подписка</p>
-            <p><strong>Цена:</strong> 99 Telegram Stars</p>
-            <p><strong>Описание:</strong> Месячная подписка на премиум функции</p>
-        </div>
-        
-        <div class="card">
-            <h3>🐛 Отладка</h3>
-            <div class="debug" id="debug"></div>
-            <button class="button" onclick="clearDebug()" style="background: #6c757d;">
-                🧹 Очистить лог
-            </button>
+        <div class="debug-info">
+            <div class="debug-title">Отладочная информация:</div>
+            <div id="debug-content">
+                Инициализация...
+            </div>
         </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
+        let debugLog = [];
         
-        function log(message) {
+        function addDebugLog(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
-            console.log(`[${timestamp}] ${message}`);
-            
-            const debugEl = document.getElementById('debug');
-            debugEl.innerHTML += `<div>${timestamp}: ${message}</div>`;
-            debugEl.scrollTop = debugEl.scrollHeight;
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+            console.log(`[DEBUG] ${message}`);
         }
         
-        function updateStatus(message, type = 'info') {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status ${type}`;
-            log(`STATUS [${type.toUpperCase()}]: ${message}`);
+        function updateDebugDisplay() {
+            const debugContent = document.getElementById('debug-content');
+            debugContent.innerHTML = debugLog.map(log => `<div>${log}</div>`).join('');
         }
         
-        function init() {
-            log("🚀 Инициализация Payment Mini App...");
-            
-            try {
-                tg.ready();
-                tg.expand();
-                
-                log("✅ Базовая инициализация завершена");
-                log("👤 Пользователь: " + (tg.initDataUnsafe?.user?.first_name || "Неизвестен"));
-                log("🆔 User ID: " + (tg.initDataUnsafe?.user?.id || "Неизвестен"));
-                
-                updateStatus("✅ Готов к оплате", "success");
-                
-            } catch (error) {
-                log("❌ Ошибка инициализации: " + error.message);
-                updateStatus("❌ Ошибка инициализации", "error");
-            }
-        }
-        
-        function initiatePayment() {
-            log("💳 === НАЧАЛО ПЛАТЕЖА ===");
-            
-            updateStatus("⏳ Инициация платежа...", "info");
-            
-            // Отключаем кнопку на время обработки
-            const payButton = document.getElementById('payButton');
-            payButton.disabled = true;
-            payButton.textContent = "⏳ Обработка...";
-            
-            try {
-                // Параметры платежа
-                const invoiceParams = {
-                    title: "Премиум подписка",
-                    description: "Месячная подписка на премиум функции приложения",
-                    currency: "XTR", // Telegram Stars
-                    prices: [
-                        {
-                            label: "Премиум подписка",
-                            amount: 99 // 99 Telegram Stars
-                        }
-                    ],
-                    payload: JSON.stringify({
-                        user_id: tg.initDataUnsafe?.user?.id,
-                        product: "premium_subscription",
-                        duration: "1_month",
-                        timestamp: new Date().toISOString()
-                    })
-                };
-                
-                log("📋 Параметры платежа:");
-                log(JSON.stringify(invoiceParams, null, 2));
-                
-                // Открываем платежную форму
-                tg.openInvoice(invoiceParams.title, invoiceParams.description, invoiceParams.payload, "provider_token", invoiceParams.currency, invoiceParams.prices, (status) => {
-                    log("💳 Callback платежа получен: " + status);
-                    handlePaymentCallback(status);
-                });
-                
-                log("✅ Платежная форма открыта");
-                updateStatus("💳 Платежная форма открыта", "info");
-                
-            } catch (error) {
-                log("❌ Ошибка инициации платежа: " + error.message);
-                updateStatus("❌ Ошибка платежа", "error");
-                
-                // Возвращаем кнопку в исходное состояние
-                payButton.disabled = false;
-                payButton.textContent = "💳 Оплатить";
-            }
-        }
-        
-        function handlePaymentCallback(status) {
-            log("📞 === ОБРАБОТКА РЕЗУЛЬТАТА ПЛАТЕЖА ===");
-            log("📊 Статус: " + status);
-            
-            const payButton = document.getElementById('payButton');
-            
-            switch (status) {
-                case 'paid':
-                    log("✅ Платеж успешно завершен!");
-                    updateStatus("🎉 Платеж успешен!", "success");
-                    payButton.textContent = "✅ Оплачено";
-                    payButton.style.background = "#28a745";
-                    
-                    // Вибрация успеха
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                    
-                    // Показываем уведомление
-                    setTimeout(() => {
-                        tg.showAlert("🎉 Спасибо за покупку! Премиум функции активированы.");
-                    }, 500);
-                    
-                    break;
-                    
-                case 'cancelled':
-                    log("❌ Платеж отменен пользователем");
-                    updateStatus("❌ Платеж отменен", "error");
-                    payButton.disabled = false;
-                    payButton.textContent = "💳 Оплатить";
-                    
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('error');
-                    }
-                    
-                    break;
-                    
-                case 'failed':
-                    log("❌ Платеж не удался");
-                    updateStatus("❌ Ошибка платежа", "error");
-                    payButton.disabled = false;
-                    payButton.textContent = "💳 Попробовать снова";
-                    
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('error');
-                    }
-                    
-                    tg.showAlert("❌ Не удалось обработать платеж. Попробуйте еще раз.");
-                    
-                    break;
-                    
-                case 'pending':
-                    log("⏳ Платеж в обработке");
-                    updateStatus("⏳ Платеж обрабатывается...", "info");
-                    payButton.textContent = "⏳ Обработка...";
-                    
-                    break;
-                    
-                default:
-                    log("❓ Неизвестный статус платежа: " + status);
-                    updateStatus("❓ Неизвестный статус", "error");
-                    payButton.disabled = false;
-                    payButton.textContent = "💳 Оплатить";
+        function showStatus(message, type = 'info') {
+            const container = document.querySelector('.container');
+            const existingStatus = container.querySelector('.status');
+            if (existingStatus) {
+                existingStatus.remove();
             }
             
-            log("🏁 Обработка платежа завершена");
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            container.insertBefore(statusDiv, container.firstChild);
+            
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 5000);
         }
         
-        function clearDebug() {
-            document.getElementById('debug').innerHTML = '';
-            log("🧹 Лог очищен");
+        // Инициализация Telegram WebApp
+        tg.ready();
+        tg.expand();
+        
+        addDebugLog('Telegram WebApp инициализирован');
+        addDebugLog(`Версия WebApp: ${tg.version}`);
+        addDebugLog(`Платформа: ${tg.platform}`);
+        addDebugLog(`Пользователь: ${JSON.stringify(tg.initDataUnsafe?.user || 'не найден')}`);
+        addDebugLog(`Поддерживает платежи: ${tg.isPaymentAvailable ? 'Да' : 'Нет'}`);
+        
+        // Проверяем доступность платежей
+        if (!tg.isPaymentAvailable) {
+            addDebugLog('⚠️ Платежи недоступны в данной среде');
+            showStatus('Платежи недоступны в данной среде', 'error');
         }
         
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            log("📄 DOM загружен, запускаем инициализацию...");
-            init();
-        });
+        function buyProduct() {
+            addDebugLog('Начинаем процесс покупки...');
+            
+            const button = document.querySelector('.buy-button');
+            button.disabled = true;
+            button.textContent = '⏳ Обработка...';
+            
+            if (!tg.isPaymentAvailable) {
+                addDebugLog('❌ Платежи недоступны');
+                showStatus('Платежи недоступны в этой среде', 'error');
+                button.disabled = false;
+                button.textContent = '💳 Купить сейчас';
+                return;
+            }
+            
+            // Параметры для оплаты
+            const invoice = {
+                title: 'Премиум подписка',
+                description: 'Доступ ко всем функциям на месяц',
+                payload: 'premium_subscription_monthly',
+                provider_token: 'PROVIDER_TOKEN', // Здесь должен быть реальный токен провайдера
+                currency: 'RUB',
+                prices: [{
+                    label: 'Премиум подписка',
+                    amount: 29900 // Цена в копейках (299 рублей)
+                }]
+            };
+            
+            addDebugLog(`Отправляем invoice: ${JSON.stringify(invoice, null, 2)}`);
+            
+            // Отправляем платеж
+            tg.sendData(JSON.stringify({
+                action: 'payment',
+                invoice: invoice
+            }));
+            
+            addDebugLog('Invoice отправлен боту');
+            showStatus('Данные отправлены боту для создания счета', 'info');
+            
+            // Сбрасываем кнопку через 3 секунды
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = '💳 Купить сейчас';
+            }, 3000);
+        }
         
-        // Обработчики событий платежей
+        // Обработчики событий Telegram WebApp
         tg.onEvent('invoiceClosed', function(eventData) {
-            log("🧾 Событие invoiceClosed: " + JSON.stringify(eventData));
+            addDebugLog(`Событие invoiceClosed: ${JSON.stringify(eventData)}`);
             
             if (eventData.status === 'paid') {
-                log("💰 Платеж подтвержден через событие");
+                addDebugLog('✅ Платеж успешно завершен!');
+                showStatus('Платеж успешно завершен!', 'success');
+            } else if (eventData.status === 'cancelled') {
+                addDebugLog('❌ Платеж отменен пользователем');
+                showStatus('Платеж был отменен', 'error');
+            } else if (eventData.status === 'failed') {
+                addDebugLog('❌ Платеж не удался');
+                showStatus('Ошибка при проведении платежа', 'error');
             }
         });
         
-        // Обработка других событий
-        tg.onEvent('themeChanged', function() {
-            log("🎨 Тема изменена");
+        tg.onEvent('paymentFormSubmit', function(eventData) {
+            addDebugLog(`Событие paymentFormSubmit: ${JSON.stringify(eventData)}`);
         });
         
-        // Обработка ошибок
-        window.addEventListener('error', function(e) {
-            log("💥 JavaScript ошибка: " + e.message);
-            updateStatus("❌ JavaScript ошибка", "error");
+        // Обработка других событий для отладки
+        tg.onEvent('themeChanged', function() {
+            addDebugLog('Тема изменена');
         });
+        
+        tg.onEvent('viewportChanged', function(eventData) {
+            addDebugLog(`Viewport изменен: ${JSON.stringify(eventData)}`);
+        });
+        
+        // Добавляем информацию о теме
+        addDebugLog(`Цветовая схема: ${tg.colorScheme}`);
+        addDebugLog(`Высота viewport: ${tg.viewportHeight}px`);
+        
+        // Симуляция для тестирования вне Telegram
+        if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
+            addDebugLog('⚠️ Запуск вне Telegram WebApp - используем симуляцию');
+            showStatus('Демо-режим: запуск вне Telegram', 'info');
+        }
     </script>
 </body>
 </html>
