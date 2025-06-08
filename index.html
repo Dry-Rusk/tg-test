@@ -17,6 +17,7 @@
         sampleData: "Привет из Mini App!",
         userAgent: navigator.userAgent
       };
+      alert("hello");
       tg.sendData(JSON.stringify(data));
       document.getElementById('status').textContent = "✅ Данные отправлены!";
     };
