@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Mini App</title>
+    <title>Inline Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -48,10 +48,10 @@
     </style>
 </head>
 <body>
-    <h1>🧪 Test Mini App</h1>
+    <h1>📱 Inline Mini App</h1>
     
-    <button class="button" onclick="sendTestData()">
-        📤 Отправить тестовые данные
+    <button class="button" onclick="sendDataToBot()">
+        📤 Отправить данные
     </button>
     
     <div class="status" id="status">
@@ -61,30 +61,18 @@
     <script>
         let tg = window.Telegram.WebApp;
         
-        // Инициализация
         tg.ready();
         tg.expand();
         
-        function sendTestData() {
-            console.log("📤 Отправляем тестовые данные...");
+        function sendDataToBot() {
+            const data = {
+                sampleData: "I am data",
+                user: tg.initDataUnsafe?.user
+            };
             
-            const data = {"claude": "debil"};
+            tg.sendData(JSON.stringify(data));
             
-            try {
-                tg.sendData(JSON.stringify(data));
-                
-                document.getElementById('status').textContent = "✅ Данные отправлены!";
-                console.log("✅ Данные отправлены:", data);
-                
-                // Закрываем через 2 секунды
-                setTimeout(() => {
-                    tg.close();
-                }, 2000);
-                
-            } catch (error) {
-                document.getElementById('status').textContent = "❌ Ошибка: " + error.message;
-                console.error("❌ Ошибка:", error);
-            }
+            document.getElementById('status').textContent = "✅ Данные отправлены!";
         }
     </script>
 </body>
