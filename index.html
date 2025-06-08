@@ -21,7 +21,7 @@
       alert("hello");
       tg.sendData(JSON.stringify(data));
       document.getElementById('status').textContent = "✅ Данные отправлены!";
-      const user = tg.initData;
+      const user = tg.initDataUnsafe;
       console.log(user);
     };
   </script>
