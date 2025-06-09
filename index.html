@@ -111,11 +111,8 @@
         
         addDebugLog('Telegram WebApp инициализирован');
         addDebugLog(`Пользователь: ${JSON.stringify(tg.initDataUnsafe?.user || 'не найден')}`);
-        addDebugLog(`query_id: ${tg.initDataUnsafe?.query_id || 'не найден'}`);
-        
-        if (!tg.initDataUnsafe?.query_id) {
-            addDebugLog('⚠️ ВНИМАНИЕ: query_id отсутствует. Мини-приложение запущено не из inline-кнопки');
-        }
+        addDebugLog(`Telegram ID: ${tg.initDataUnsafe?.user?.id || 'не найден'}`);
+        addDebugLog('✅ Мини-приложение запущено из keyboard button - sendData доступен');
         function payWithRedsys() {
             addDebugLog('Начинаем процесс оплаты через Redsys...');
             
@@ -123,55 +120,37 @@
             button.disabled = true;
             button.textContent = '⏳ Обработка...';
             
-            // Получаем query_id для answerWebAppQuery
-            const queryId = tg.initDataUnsafe?.query_id;
-            
-            if (!queryId) {
-                addDebugLog('❌ query_id не найден. Мини-приложение должно быть запущено из inline-кнопки');
-                button.disabled = false;
-                button.textContent = '💳 Оплатить через Redsys';
-                return;
-            }
-            
-            addDebugLog(`✅ query_id получен: ${queryId}`);
-            
-            // Данные для invoice
-            const invoiceData = {
-                query_id: queryId,
-                result: {
-                    type: 'article',
-                    id: 'redsys_payment_' + Date.now(),
+            // Данные для отправки боту через sendData
+            const paymentData = {
+                action: 'redsys_payment',
+                user_id: tg.initDataUnsafe?.user?.id || null, // Telegram ID пользователя
+                invoice: {
                     title: 'Тестовый товар',
-                    input_message_content: {
-                        message_text: 'Оплата через Redsys',
-                        invoice: {
-                            title: 'Тестовый товар',
-                            description: 'Тестовая покупка через Redsys',
-                            payload: 'test_redsys_payment',
-                            currency: 'RUB',
-                            prices: [{
-                                label: 'Тестовый товар',
-                                amount: 10000 // 100 рублей в копейках
-                            }]
-                        }
-                    }
+                    description: 'Тестовая покупка через Redsys',
+                    payload: 'test_redsys_payment',
+                    currency: 'RUB',
+                    prices: [{
+                        label: 'Тестовый товар',
+                        amount: 10000 // 100 рублей в копейках
+                    }]
                 }
             };
             
-            addDebugLog(`Отправляем answerWebAppQuery: ${JSON.stringify(invoiceData, null, 2)}`);
+            addDebugLog(`Отправляем данные боту: ${JSON.stringify(paymentData, null, 2)}`);
             
             // Проверяем доступность WebApp
-            if (typeof tg === 'undefined' || !tg.initDataUnsafe) {
+            if (typeof tg === 'undefined' || !tg.sendData) {
                 addDebugLog('❌ Telegram WebApp недоступен');
                 // Симуляция для тестирования вне Telegram
                 setTimeout(() => {
-                    addDebugLog('✅ [СИМУЛЯЦИЯ] answerWebAppQuery вызван');
+                    addDebugLog('✅ [СИМУЛЯЦИЯ] Данные отправлены боту');
                     addDebugLog('✅ [СИМУЛЯЦИЯ] Invoice создан');
                     addDebugLog('✅ [СИМУЛЯЦИЯ] Платеж успешен!');
                 }, 2000);
             } else {
-                // Отправляем запрос к боту для вызова answerWebAppQuery
-                sendAnswerWebAppQuery(invoiceData);
+                // Отправляем данные боту через sendData (работает с keyboard button)
+                tg.sendData(JSON.stringify(paymentData));
+                addDebugLog('✅ Данные отправлены боту через sendData');
             }
             
             // Сбрасываем кнопку через 3 секунды
@@ -179,39 +158,6 @@
                 button.disabled = false;
                 button.textContent = '💳 Оплатить через Redsys';
             }, 3000);
-        }
-        
-        // Функция для отправки answerWebAppQuery через бота
-        async function sendAnswerWebAppQuery(data) {
-            try {
-                addDebugLog('🌐 Вызываем answerWebAppQuery...');
-                
-                // Используем встроенный метод Telegram WebApp
-                const result = {
-                    type: 'article',
-                    id: data.result.id,
-                    title: 'Создан invoice для оплаты',
-                    description: 'Нажмите для завершения оплаты',
-                    input_message_content: {
-                        message_text: `💳 <b>Создан счет на оплату</b>\n\n` +
-                                    `Товар: ${data.result.input_message_content.invoice.title}\n` +
-                                    `Сумма: ₽${data.result.input_message_content.invoice.prices[0].amount / 100}\n` +
-                                    `Провайдер: Redsys`,
-                        parse_mode: 'HTML'
-                    }
-                };
-                
-                // Отправляем результат
-                if (tg.answerWebAppQuery) {
-                    await tg.answerWebAppQuery(data.query_id, result);
-                    addDebugLog('✅ answerWebAppQuery успешно вызван');
-                } else {
-                    addDebugLog('❌ answerWebAppQuery недоступен в текущей версии');
-                }
-                
-            } catch (error) {
-                addDebugLog(`❌ Ошибка answerWebAppQuery: ${error.message}`);
-            }
         }
         
         // Обработчики событий Telegram WebApp
