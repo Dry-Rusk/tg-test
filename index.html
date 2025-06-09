@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тест ЮKassa</title>
+    <title>Тест Redsys</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -76,8 +76,8 @@
     <div class="product-card">
         <div class="product-title">Тестовый товар</div>
         <div class="product-price">₽100</div>
-        <button class="pay-button" onclick="payWithYuKassa()">
-            💳 Оплатить через ЮKassa
+        <button class="pay-button" onclick="payWithRedsys()">
+            💳 Оплатить через Redsys
         </button>
     </div>
     
@@ -112,8 +112,8 @@
         addDebugLog('Telegram WebApp инициализирован');
         addDebugLog(`Пользователь: ${JSON.stringify(tg.initDataUnsafe?.user || 'не найден')}`);
         
-        function payWithYuKassa() {
-            addDebugLog('Начинаем процесс оплаты через ЮKassa...');
+        function payWithRedsys() {
+            addDebugLog('Начинаем процесс оплаты через Redsys...');
             
             const button = document.querySelector('.pay-button');
             button.disabled = true;
@@ -121,11 +121,11 @@
             
             // Данные для отправки боту
             const paymentData = {
-                action: 'yukassa_payment',
+                action: 'redsys_payment',
                 invoice: {
                     title: 'Тестовый товар',
-                    description: 'Тестовая покупка через ЮKassa',
-                    payload: 'test_yukassa_payment',
+                    description: 'Тестовая покупка через Redsys',
+                    payload: 'test_redsys_payment',
                     currency: 'RUB',
                     prices: [{
                         label: 'Тестовый товар',
@@ -154,7 +154,7 @@
             // Сбрасываем кнопку через 3 секунды
             setTimeout(() => {
                 button.disabled = false;
-                button.textContent = '💳 Оплатить через ЮKassa';
+                button.textContent = '💳 Оплатить через Redsys';
             }, 3000);
         }
         
