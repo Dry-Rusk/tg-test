@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мини-магазин</title>
+    <title>Тест ЮKassa</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -12,12 +12,6 @@
             padding: 20px;
             background: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
         }
         
         .product-card {
@@ -25,32 +19,13 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .product-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            margin-bottom: 15px;
+            text-align: center;
         }
         
         .product-title {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
-        }
-        
-        .product-description {
-            color: var(--tg-theme-hint-color, #666);
-            margin-bottom: 15px;
-            line-height: 1.4;
         }
         
         .product-price {
@@ -60,7 +35,7 @@
             margin-bottom: 20px;
         }
         
-        .buy-button {
+        .pay-button {
             width: 100%;
             padding: 16px;
             background: var(--tg-theme-button-color, #0088cc);
@@ -70,14 +45,9 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
         
-        .buy-button:hover {
-            opacity: 0.8;
-        }
-        
-        .buy-button:disabled {
+        .pay-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -91,6 +61,8 @@
             font-size: 12px;
             color: #333;
             border: 1px solid #ddd;
+            max-height: 300px;
+            overflow-y: auto;
         }
         
         .debug-title {
@@ -98,53 +70,21 @@
             margin-bottom: 10px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
-        .status {
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #cce7ff;
-            color: #004085;
-            border: 1px solid #b3d9ff;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="product-card">
-            <div class="product-image">🎁</div>
-            <div class="product-title">Премиум подписка</div>
-            <div class="product-description">
-                Получите доступ ко всем функциям приложения на месяц. 
-                Без рекламы, дополнительные возможности и приоритетная поддержка.
-            </div>
-            <div class="product-price">₽299</div>
-            <button class="buy-button" onclick="buyProduct()">
-                💳 Купить сейчас
-            </button>
-        </div>
-        
-        <div class="debug-info">
-            <div class="debug-title">Отладочная информация:</div>
-            <div id="debug-content">
-                Инициализация...
-            </div>
+    <div class="product-card">
+        <div class="product-title">Тестовый товар</div>
+        <div class="product-price">₽100</div>
+        <button class="pay-button" onclick="payWithYuKassa()">
+            💳 Оплатить через ЮKassa
+        </button>
+    </div>
+    
+    <div class="debug-info">
+        <div class="debug-title">Отладочная информация:</div>
+        <div id="debug-content">
+            Инициализация...
         </div>
     </div>
 
@@ -152,7 +92,7 @@
         let tg = window.Telegram.WebApp;
         let debugLog = [];
         
-        function addDebugLog(message, type = 'info') {
+        function addDebugLog(message) {
             const timestamp = new Date().toLocaleTimeString();
             debugLog.push(`[${timestamp}] ${message}`);
             updateDebugDisplay();
@@ -162,23 +102,7 @@
         function updateDebugDisplay() {
             const debugContent = document.getElementById('debug-content');
             debugContent.innerHTML = debugLog.map(log => `<div>${log}</div>`).join('');
-        }
-        
-        function showStatus(message, type = 'info') {
-            const container = document.querySelector('.container');
-            const existingStatus = container.querySelector('.status');
-            if (existingStatus) {
-                existingStatus.remove();
-            }
-            
-            const statusDiv = document.createElement('div');
-            statusDiv.className = `status ${type}`;
-            statusDiv.textContent = message;
-            container.insertBefore(statusDiv, container.firstChild);
-            
-            setTimeout(() => {
-                statusDiv.remove();
-            }, 5000);
+            debugContent.scrollTop = debugContent.scrollHeight;
         }
         
         // Инициализация Telegram WebApp
@@ -186,60 +110,51 @@
         tg.expand();
         
         addDebugLog('Telegram WebApp инициализирован');
-        addDebugLog(`Версия WebApp: ${tg.version}`);
-        addDebugLog(`Платформа: ${tg.platform}`);
         addDebugLog(`Пользователь: ${JSON.stringify(tg.initDataUnsafe?.user || 'не найден')}`);
-        addDebugLog(`Поддерживает платежи: ${tg.isPaymentAvailable ? 'Да' : 'Нет'}`);
         
-        // Проверяем доступность платежей
-        if (!tg.isPaymentAvailable) {
-            addDebugLog('⚠️ Платежи недоступны в данной среде');
-            showStatus('Платежи недоступны в данной среде', 'error');
-        }
-        
-        function buyProduct() {
-            addDebugLog('Начинаем процесс покупки...');
+        function payWithYuKassa() {
+            addDebugLog('Начинаем процесс оплаты через ЮKassa...');
             
-            const button = document.querySelector('.buy-button');
+            const button = document.querySelector('.pay-button');
             button.disabled = true;
             button.textContent = '⏳ Обработка...';
             
-            if (!tg.isPaymentAvailable) {
-                addDebugLog('❌ Платежи недоступны');
-                showStatus('Платежи недоступны в этой среде', 'error');
-                button.disabled = false;
-                button.textContent = '💳 Купить сейчас';
-                return;
-            }
-            
-            // Параметры для оплаты
-            const invoice = {
-                title: 'Премиум подписка',
-                description: 'Доступ ко всем функциям на месяц',
-                payload: 'premium_subscription_monthly',
-                provider_token: 'PROVIDER_TOKEN', // Здесь должен быть реальный токен провайдера
-                currency: 'RUB',
-                prices: [{
-                    label: 'Премиум подписка',
-                    amount: 29900 // Цена в копейках (299 рублей)
-                }]
+            // Данные для отправки боту
+            const paymentData = {
+                action: 'yukassa_payment',
+                invoice: {
+                    title: 'Тестовый товар',
+                    description: 'Тестовая покупка через ЮKassa',
+                    payload: 'test_yukassa_payment',
+                    currency: 'RUB',
+                    prices: [{
+                        label: 'Тестовый товар',
+                        amount: 10000 // 100 рублей в копейках
+                    }]
+                }
             };
             
-            addDebugLog(`Отправляем invoice: ${JSON.stringify(invoice, null, 2)}`);
+            addDebugLog(`Отправляем данные боту: ${JSON.stringify(paymentData, null, 2)}`);
             
-            // Отправляем платеж
-            tg.sendData(JSON.stringify({
-                action: 'payment',
-                invoice: invoice
-            }));
-            
-            addDebugLog('Invoice отправлен боту');
-            showStatus('Данные отправлены боту для создания счета', 'info');
+            // Проверяем доступность WebApp
+            if (typeof tg === 'undefined' || !tg.sendData) {
+                addDebugLog('❌ Telegram WebApp недоступен');
+                // Симуляция для тестирования вне Telegram
+                setTimeout(() => {
+                    addDebugLog('✅ [СИМУЛЯЦИЯ] Данные отправлены боту');
+                    addDebugLog('✅ [СИМУЛЯЦИЯ] Invoice создан');
+                    addDebugLog('✅ [СИМУЛЯЦИЯ] Платеж успешен!');
+                }, 2000);
+            } else {
+                // Отправляем данные боту
+                tg.sendData(JSON.stringify(paymentData));
+                addDebugLog('✅ Данные отправлены боту');
+            }
             
             // Сбрасываем кнопку через 3 секунды
             setTimeout(() => {
                 button.disabled = false;
-                button.textContent = '💳 Купить сейчас';
+                button.textContent = '💳 Оплатить через ЮKassa';
             }, 3000);
         }
         
@@ -249,37 +164,16 @@
             
             if (eventData.status === 'paid') {
                 addDebugLog('✅ Платеж успешно завершен!');
-                showStatus('Платеж успешно завершен!', 'success');
             } else if (eventData.status === 'cancelled') {
                 addDebugLog('❌ Платеж отменен пользователем');
-                showStatus('Платеж был отменен', 'error');
             } else if (eventData.status === 'failed') {
                 addDebugLog('❌ Платеж не удался');
-                showStatus('Ошибка при проведении платежа', 'error');
             }
         });
-        
-        tg.onEvent('paymentFormSubmit', function(eventData) {
-            addDebugLog(`Событие paymentFormSubmit: ${JSON.stringify(eventData)}`);
-        });
-        
-        // Обработка других событий для отладки
-        tg.onEvent('themeChanged', function() {
-            addDebugLog('Тема изменена');
-        });
-        
-        tg.onEvent('viewportChanged', function(eventData) {
-            addDebugLog(`Viewport изменен: ${JSON.stringify(eventData)}`);
-        });
-        
-        // Добавляем информацию о теме
-        addDebugLog(`Цветовая схема: ${tg.colorScheme}`);
-        addDebugLog(`Высота viewport: ${tg.viewportHeight}px`);
         
         // Симуляция для тестирования вне Telegram
         if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
             addDebugLog('⚠️ Запуск вне Telegram WebApp - используем симуляцию');
-            showStatus('Демо-режим: запуск вне Telegram', 'info');
         }
     </script>
 </body>
